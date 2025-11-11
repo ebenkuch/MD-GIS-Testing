@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Maryland GIS Live Map</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.29/"></script>
+    <style>
+      html, body, #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+      }
+    </style>
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer",
+        "esri/layers/GeoJSONLayer",
+        "esri/widgets/ScaleBar",
+        "esri/widgets/Legend",
+        "esri/widgets/LayerList",
+        "esri/widgets/Expand",
+        "esri/widgets/BasemapGallery"
+      ], function (
+        Map, MapView, FeatureLayer, GeoJSONLayer,
+        ScaleBar, Legend, LayerList, Expand, BasemapGallery
+      ) {
+
+        const map = new Map({
+          basemap: "satellite"
+        });
+
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [-76.6, 39.0],
+          zoom: 8
+        });
+
+        const mdotLayer = new FeatureLayer({
+          url: "https://services.arcgis.com/njFNhDsUCentVYJW/arcgis/rest/services/MDOT_Know_Your_Roads/FeatureServer/0",
+          outFields: ["*"],
+          title: "MDOT Roads",
+          popupTemplate: {
+            title: "{ROAD_NAME}",
+            content: "Route Number: {ROUTE_NUM}<br>Functional Class: {FUNC_CLASS}"
+          }
+        });
+
+        const trafficLayer = new FeatureLayer({
+          url: "https://services.arcgis.com/njFNhDsUCentVYJW/arcgis/rest/services/Traffic_Speed_MD/FeatureServer/0",
+          title: "Live Traffic Speed (MD)"
+        });
+
+        const bridgesLayer = new FeatureLayer({
+          url: "https://geodata.md.gov/imap/rest/services/Transportation/MD_Bridges/MapServer/0",
+          title: "Maryland Bridges"
+        });
+
+        const parcelsLayer = new FeatureLayer({
+          url: "https://geodata.md.gov/imap/rest/services/PlanningCadastre/MD_PropertyData/MapServer/0",
+          title: "Parcel Boundaries (MD)"
+        });
+
+        const floodZonesLayer = new FeatureLayer({
+          url: "https://geodata.md.gov/imap/rest/services/Environment/MD_FloodHazardZones/MapServer/0",
+          title: "Flood Hazard Zones (FEMA)"
+        });
+
+        const fredCatch = new GeoJSONLayer({
+          url: "https://raw.githubusercontent.com/ebenkuch/MD-GIS-Testing/f3bc4f02dd16a798ba1831739261cc5defdb178b/test2.geojson",
+          outFields: ["*"],
+          opacity: 1.0,
+          title: "Catchments_1mile"
+        });
+        map.addMany([
+          fredCatch,
+          mdotLayer,
+          trafficLayer,
+          bridgesLayer,
+          parcelsLayer,
+          floodZonesLayer
+        ]);
+
+        const scaleBar = new ScaleBar({
+          view: view,
+          unit: "dual"
+        });
+        view.ui.add(scaleBar, { position: "bottom-left" });
+
+        const legend = new Legend({ view: view });
+        const legendExpand = new Expand({
+          view: view,
+          content: legend,
+          expanded: false
+        });
+        view.ui.add(legendExpand, "top-right");
+
+        const layerList = new LayerList({ view: view });
+        const layerListExpand = new Expand({
+          view: view,
+          content: layerList,
+          expanded: false
+        });
+        view.ui.add(layerListExpand, "top-right");
+
+        const basemapGallery = new BasemapGallery({ view: view });
+        const basemapExpand = new Expand({
+          view: view,
+          content: basemapGallery,
+          expanded: false
+        });
+        view.ui.add(basemapExpand, "top-right");
+      });
+    </script>
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>
